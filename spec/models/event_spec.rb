@@ -2,50 +2,66 @@ require 'rails_helper'
 
 RSpec.describe Event, type: :model do
   describe "validations" do
-      it "is invalid without a home type" do
-         event =  event.new(home_type: "")
-         event.valid?
-        expect( event.errors).to have_key(:home_type)
-      end
-
-      it "is invalid with a listing name longer than 50 characters" do
-         event =  event.new(listing_name: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. ")
-         event.valid?
-        expect( event.errors).to have_key(:listing_name)
-      end
-
-      it "is valid without a price" do
-         event =  event.new(price: "")
-         event.valid?
-        expect( event.errors).not_to have_key(: event)
-      end
-
-        describe "#free?" do
-    let(:free_event)profiles { create :free true }
-    let(:not_free_event)profiles { create :free false }
-
-    it "returns true if the events is for free" do
-      expect( free_event.free?).to eq(true)
-      expect(not_free_event.free?).to eq(false)
+    it "is invalid without a name" do
+      event = Event.new(name: "")
+      event.valid?
+      expect(event.errors).to have_key(:name)
     end
 
-    describe ".order_by_price" do
-    let!(: event1) { create : event, price: 100 }
-    let!(: event2) { create : event, price: 200 }
-    let!(: event3) { create : event, price: 300 }
+    it "is invalid without a description" do
+      event = Event.new(description: "")
+      event.valid?
+      expect(event.errors).to have_key(:description)
+    end
+
+    it "is invalid with a description longer than 500 characters" do
+      event = Event.new(description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus porta mi nec urna facilisis, nec porttitor felis sagittis. In porttitor tellus vel nibh fermentum, at ornare tellus ultrices. Pellentesque condimentum aliquam sollicitudin. Mauris posuere lectus vel sagittis luctus. Quisque volutpat tellus orci. Mauris porttitor ipsum consequat elit sollicitudin, eget lacinia tortor maximus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.Maecenas nec sapien id dolor facilisis sodales vitae quis sapien. Nulla fringilla elit dolor, sit amet cras amet.")
+      event.valid?
+      expect(event.errors).to have_key(:description)
+    end
+  end
+
+  describe "#bargain?" do
+    let(:bargain_event) { create :event, price: 20 }
+    let(:non_bargain_event) { create :event, price: 200 }
+
+    it "returns true if the price is smaller than 30 EUR" do
+      expect(bargain_event.bargain?).to eq(true)
+      expect(non_bargain_event.bargain?).to eq(false)
+    end
+  end
+
+  describe ".order_by_price" do
+    let!(:event1) { create :event, price: 100 }
+    let!(:event2) { create :event, price: 200 }
+    let!(:event3) { create :event, price: 300 }
 
     it "returns a sorted array of events by prices" do
-      expect( event.order_by_price).to eq [ event1,  event2,  event3]
+      expect(Event.order_by_price).to match_array [event1, event2, event3]
     end
   end
 
   describe "association with user" do
-    let(:user) { create :event }
+    let(:user) { create :user }
 
     it "belongs to a user" do
-      event = user.event.new(name: "Fred")
+      event = user.events.new(name: "Weekly football match")
 
-      expect(event1.user).to eq(user)
+      expect(event.user).to eq(user)
+    end
+  end
+
+  describe "association with category" do
+    let(:event) { create :event }
+
+    let(:category1) { create :category, name: "Bright", events: [event] }
+    let(:category2) { create :category, name: "Clean lines", events: [event] }
+    let(:category3) { create :category, name: "A Man's Touch", events: [event] }
+
+    it "has categorys" do
+      expect(event.categories).to include(category1)
+      expect(event.categories).to include(category2)
+      expect(event.categories).to include(category3)
     end
   end
 end
