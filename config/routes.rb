@@ -7,4 +7,7 @@ Rails.application.routes.draw do
     resources :events
 
     get "about" => "pages#about"
+
+    resources :photos
+
 end
